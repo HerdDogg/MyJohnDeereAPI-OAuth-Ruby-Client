@@ -1,0 +1,18 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    dotenv (2.5.0)
+    oauth (0.5.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  dotenv
+  oauth
+
+RUBY VERSION
+   ruby 2.5.1p57
+
+BUNDLED WITH
+   1.16.2
