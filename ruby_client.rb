@@ -104,6 +104,7 @@ def get(url)
   response.body
 end
 
+# rubocop:disable Metrics/MethodLength
 def post(url, data)
   return nil unless access_token
 
@@ -117,10 +118,9 @@ def post(url, data)
     "content-type": JSON_TYPE
   )
 
-  puts response
-
-  response.body
+  response
 end
+# rubocop:enable Metrics/MethodLength
 
 def fetch_user
   puts ""
@@ -136,7 +136,7 @@ def fetch_organizations
   puts ""
 end
 
-# rubocop:disable Metrics/MethodLength, Style/ConditionalAssignment
+# rubocop:disable Metrics/LineLength, Metrics/MethodLength, Style/ConditionalAssignment, Metrics/AbcSize
 def fetch_asset_types
   puts ""
   puts "Asset Types:"
@@ -161,7 +161,7 @@ def fetch_asset_types
     puts ""
   end
 end
-# rubocop:enable Metrics/MethodLength, Style/ConditionalAssignment
+# rubocop:enable Metrics/LineLength, Metrics/MethodLength, Style/ConditionalAssignment, Metrics/AbcSize
 
 def fetch_assets(org_id)
   puts ""
@@ -170,15 +170,6 @@ def fetch_assets(org_id)
   puts ""
 end
 
-# rubocop:disable Metrics/MethodLength, Style/ConditionalAssignment
-def fetch_contribution_definitions
-  puts ""
-  puts "Contribution Definitions:"
-  puts get("/contributionDefinitions")
-  puts ""
-end
-# rubocop:enable Metrics/MethodLength, Style/ConditionalAssignment
-
 def fetch_asset(asset_id)
   puts ""
   puts "Asset [#{asset_id}]:"
@@ -186,24 +177,71 @@ def fetch_asset(asset_id)
   puts ""
 end
 
+# rubocop:disable Metrics/LineLength, Metrics/MethodLength
 def create_asset(org_id, title, text)
   puts ""
   puts "Creating asset [#{org_id}][#{title}][#{text}]:"
-  puts post(
+  response = post(
     "/organizations/#{org_id}/assets",
-    {
-      text: text,
-      title: title,
-      assetCategory: "DEVICE",
-      assetSubType: "OTHER",
-      assetType: "SENSOR"
-    }
+    text: text,
+    title: title,
+    assetCategory: "DEVICE",
+    assetSubType: "OTHER",
+    assetType: "SENSOR",
+    links: [
+      {
+        "@type": "Link",
+        rel: "contributionDefinition",
+        uri: "https://sandboxapi.deere.com/platform/contributionDefinitions/#{ENV['JOHN_DEERE_DEFINITION_ID']}"
+      }
+    ]
   )
+  asset_id = response.header["location"].gsub("https://sandboxapi.deere.com/platform/assets/", "")
+
+  puts ""
+  puts "Code: #{response.code}"
+  puts "Asset ID: #{asset_id}"
   puts ""
 end
 
-# def create_asset_location(asset_id, lat, lon)
-# end
+def create_asset_location(asset_id:, lat:, lon:)
+  puts ""
+  puts "Creating Asset Location [#{asset_id}]; lat: [#{lat}]; lon: [#{lon}]:"
+
+  response = post(
+    "/assets/#{asset_id}/locations",
+    [
+      {
+        geometry: {
+          geometry: {
+            geometries: [
+              {
+                coordinates: [lon, lat],
+                type: "Point"
+              }
+            ],
+            type: "GeometryCollection"
+          },
+          type: "Feature"
+        }.to_json,
+        "measurementData": [{
+          "@type": "BasicMeasurement",
+          name: "[Checkins](https://www.example.com/site/url)",
+          value: "123",
+          unit: "animals"
+        }],
+        timestamp: Time.now.utc.strftime("%FT%T.%LZ"),
+        "@type": "ContributedAssetLocation"
+      }
+    ]
+  )
+
+  puts ""
+  puts "Code: #{response.code}"
+  puts "Body: #{response.body}"
+  puts ""
+end
+# rubocop:enable Metrics/LineLength, Metrics/MethodLength
 
 %w[JOHN_DEERE_API_KEY JOHN_DEERE_API_SECRET JOHN_DEERE_API_URL].each do |var|
   unless ENV[var]
@@ -218,8 +256,8 @@ if ENV["JOHN_DEERE_OAUTH_SECRET"] && ENV["JOHN_DEERE_OAUTH_TOKEN"]
   # fetch_asset_types
   # fetch_assets("372446")
   # fetch_asset("7e7a04a9-4c4f-4773-95a4-ce1cbcfd62bb")
-  # fetch_contribution_definitions
-  create_asset("372446", "EXAMPLE_TITLE", "EXAMPLE_TEXT")
+  # create_asset("372446", "Milking Barn", "North Side of the Barn")
+  # create_asset_location(asset_id: "294121a3-f0f3-4fd2-a2d8-00ef5abeda98", lat: 36.8177283, lon: -119.7375908)
 else
   fetch_access_token
 end
