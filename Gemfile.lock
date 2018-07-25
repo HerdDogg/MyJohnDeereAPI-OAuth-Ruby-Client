@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    byebug (10.0.2)
     dotenv (2.5.0)
     oauth (0.5.4)
 
@@ -8,6 +9,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  byebug
   dotenv
   oauth
 

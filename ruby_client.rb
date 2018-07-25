@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "dotenv"
+require "byebug"
+require "dotenv/load"
 require "json"
 require "oauth"
 
@@ -82,7 +83,7 @@ puts
 puts "***** Fetching user details: GET /users/{userName} *****"
 
 response = access_token.get(
-  "/platform/users/SW31759",
+  "/platform/users/herddogg/organizations",
   "accept" => "application/vnd.deere.axiom.v3+json"
 )
 puts
