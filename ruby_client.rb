@@ -75,6 +75,7 @@ def fetch_access_token
   puts "JOHN_DEERE_OAUTH_SECRET=#{new_access_token.secret}"
   puts "JOHN_DEERE_OAUTH_TOKEN=#{new_access_token.token}"
 end
+# rubocop:enable Metrics/AbcSize
 
 def access_token
   return nil unless existing_access_token?
@@ -99,9 +100,38 @@ def fetch_url(url, options = { method: :get })
     accept: "application/vnd.deere.axiom.v3+json"
   )
 
-  puts response.body
+  response.body
 end
-# rubocop:enable Metrics/AbcSize
+
+def fetch_user
+  puts fetch_url("/users/herddogg")
+end
+
+def fetch_organizations
+  puts fetch_url("/users/herddogg/organizations")
+end
+
+# rubocop:disable Metrics/MethodLength, Style/ConditionalAssignment
+def fetch_asset_types
+  next_url = "/assetCatalog"
+
+  while next_url
+    puts "fetching #{next_url}"
+
+    response = JSON.parse(fetch_url(next_url))
+
+    puts response
+
+    if response["links"][1]["rel"] == "nextPage"
+      next_url = \
+        response["links"][1]["uri"]
+        .gsub("https://sandboxapi.deere.com/platform", "")
+    else
+      next_url = nil
+    end
+  end
+end
+# rubocop:enable Metrics/MethodLength, Style/ConditionalAssignment
 
 %w[JOHN_DEERE_API_KEY JOHN_DEERE_API_SECRET JOHN_DEERE_API_URL].each do |var|
   unless ENV[var]
@@ -111,10 +141,14 @@ end
 end
 
 if ENV["JOHN_DEERE_OAUTH_SECRET"] && ENV["JOHN_DEERE_OAUTH_TOKEN"]
-  fetch_url(
-    "/users/herddogg/organizations",
-    method: :get
-  )
+  puts "User:"
+  fetch_user
+
+  puts "\nOrganizations:"
+  fetch_organizations
+
+  puts "\nAsset Types:"
+  fetch_asset_types
 else
   fetch_access_token
 end
