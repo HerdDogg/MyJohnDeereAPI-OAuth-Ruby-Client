@@ -224,12 +224,26 @@ def create_asset_location(asset_id:, lat:, lon:)
           },
           type: "Feature"
         }.to_json,
-        "measurementData": [{
-          "@type": "BasicMeasurement",
-          name: "[Checkins](https://www.example.com/site/url)",
-          value: "123",
-          unit: "animals"
-        }],
+        "measurementData": [
+          {
+            "@type": "BasicMeasurement",
+            name: "[Checkins](https://www.example.com/site/url)",
+            value: "123",
+            unit: "animals"
+          },
+          {
+            "@type": "BasicMeasurement",
+            name: "[Estrus](https://www.example.com/site/url)",
+            value: "3",
+            unit: "animals"
+          },
+          {
+            "@type": "BasicMeasurement",
+            name: "[Health](https://www.example.com/site/url)",
+            value: "2",
+            unit: "animals"
+          }
+        ],
         timestamp: Time.now.utc.strftime("%FT%T.%LZ"),
         "@type": "ContributedAssetLocation"
       }
